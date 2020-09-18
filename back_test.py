@@ -283,6 +283,18 @@ if __name__ == "__main__":
                 target_robo.position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": adjust_number_order(command_list[i]["price"]),
                                                   "side": command_list[i]["side"], "status": new_order_staus, "qty": adjust_number_order(command_list[i]["qty"]), "sold": 0})
                 running_order_id = running_order_id + 1
+            elif command_list[i]["type"] == CommandType.CANCEL:
+                if command_list[i].get('order_id') != None : 
+                    for position in target_robo.position_list : 
+                        if position.get('order_id') == command_list[i].get('order_id') : 
+                            if position.status('order_id') != OrderStatus.FILLED : 
+                                target_robo.position_list.remove(position)
+                            break
+            elif command_list[i]["type"] == CommandType.CANCEL_ALL:
+                for position in target_robo.position_list :     
+                    if position.status('order_id') != OrderStatus.FILLED : 
+                        target_robo.position_list.remove(position)
+                            
 
     print(df_np[1])
     inputdata = [2]
