@@ -9,7 +9,7 @@ from pathlib import Path
 from importlib import import_module
 
 from robot.base.robo_base import RoboTrade
-from robot.base.robo_enum import PriceDataDictColumn, CommandType, OrderSide, OrderStatus
+from robot.base.robo_enum import OrderType, PriceDataDictColumn, CommandType, OrderSide, OrderStatus
 from common_function import find_column_number, add_close_open, add_high_low, add_high_open, add_close_low, add_ohlc4
 
 # configuration
@@ -272,17 +272,36 @@ if __name__ == "__main__":
         for i in range(len(command_list)):
             if command_list[i]["type"] == CommandType.ORDER:
                 new_order_staus = OrderStatus.OPEN
-                if FILL_ORDER_AT_CLOSE_PRICE and command_list[i]["price"] == target_robo.data5m[0][PriceDataDictColumn.CLOSE]:
-                    new_order_staus = OrderStatus.FILLED
-                    '''
-                    #DECISION deduct fund on fill
-                    target_robo.fund = target_robo.fund - \
-                        (adjust_number_order(
-                            command_list[i]["price"]) * adjust_number_order(command_list[i]["qty"])
-                    '''
-                target_robo.position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": adjust_number_order(command_list[i]["price"]),
-                                                  "side": command_list[i]["side"], "status": new_order_staus, "qty": adjust_number_order(command_list[i]["qty"]), "sold": 0})
-                running_order_id = running_order_id + 1
+                # logic on order type
+                if command_list[i]["order"] == OrderType.LIMIT : 
+                    if FILL_ORDER_AT_CLOSE_PRICE and command_list[i]["price"] == target_robo.data5m[0][PriceDataDictColumn.CLOSE]:
+                        new_order_staus = OrderStatus.FILLED
+                    target_robo.position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": adjust_number_order(command_list[i]["price"]),
+                                    "side": command_list[i]["side"], "status": new_order_staus, "qty": adjust_number_order(command_list[i]["qty"]), "sold": 0})
+                    running_order_id = running_order_id + 1
+                elif command_list[i]["order"] == OrderType.MARKET : 
+                    target_robo.position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": adjust_number_order(target_robo.data5m[0][PriceDataDictColumn.CLOSE]),
+                                    "side": command_list[i]["side"], "status":  OrderStatus.FILLED, "qty": adjust_number_order(command_list[i]["qty"]), "sold": 0})
+                    running_order_id = running_order_id + 1
+                elif command_list[i]["order"] == OrderType.CANCEL : 
+                    for position in target_robo.position_list : 
+                        if position.status == OrderStatus.OPEN and command_list['order_id'] == position["order_id"]:
+                            target_robo.position_list.remove(position)
+                elif command_list[i]["order"] == OrderType.CLOSE : 
+                    close_position_list = []
+                    for position in target_robo.position_list:
+                        if command_list['order_id'] == position["order_id"]: 
+                            if position.status == OrderStatus.OPEN :
+                                    target_robo.position_list.remove(position)
+                            elif position.status == OrderStatus.FILLED :
+                                close_side = OrderSide.SHORT
+                               
+                                if position["side"] == OrderSide.SHORT:
+                                    close_side = OrderSide.LONG
+                                close_position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": target_robo.data5m[0][PriceDataDictColumn.CLOSE],
+                                                        "side": close_side, "status": OrderStatus.FILLED, "qty": position["qty"] - position["sold"], "sold": 0})
+                                running_order_id = running_order_id + 1
+                    target_robo.position_list = target_robo.position_list + close_position_list
             elif command_list[i]["type"] == CommandType.CLOSE_ALL:
                 if command_list[i].get('order_id') != None:
                     close_position_list = []
@@ -293,13 +312,14 @@ if __name__ == "__main__":
                             if position["side"] == OrderSide.SHORT:
                                 close_side = OrderSide.LONG
                             close_position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": target_robo.data5m[0][PriceDataDictColumn.CLOSE],
-                                                        "side": close_side, "status": OrderStatus.FILLED, "qty": position["qty"], "sold": 0})
+                                                        "side": close_side, "status": OrderStatus.FILLED, "qty": position["qty"] - position["sold"], "sold": 0})
                             running_order_id = running_order_id + 1
                     target_robo.position_list = target_robo.position_list + close_position_list
             elif command_list[i]["type"] == CommandType.CANCEL_ALL:
                 for position in target_robo.position_list:
-                    if position.status('order_id') != OrderStatus.FILLED:
+                    if position.status('order_id') != OrderStatus.FILLED :
                         target_robo.position_list.remove(position)
+                    
 
     print("last fund : ", target_robo.fund)
     print("Running:", timer()-start)
