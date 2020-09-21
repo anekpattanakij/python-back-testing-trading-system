@@ -3,7 +3,7 @@ from enum import Enum
 class CommandType(Enum):
     ALERT = 'ALERT'
     ORDER = 'ORDER'
-    CANCEL = 'CANCEL'
+    CLOSE_ALL = 'CLOSE_ALL'
     CANCEL_ALL = 'CANCEL_ALL'
 
 class OrderSide(Enum):
@@ -18,6 +18,8 @@ class OrderType(Enum):
     TAKE_PROFIT_LIMIT = "TAKE_PROFIT_LIMIT" 
     TAKE_PROFIT_MARKET = "TAKE_PROFIT_MARKET"  
     TRALING_STOP = "TRALING_STOP" 
+    CANCEL = 'CANCEL'
+    CLOSE = 'CLOSE'
 
 class OrderStatus(Enum):
     OPEN = "OPEN"
