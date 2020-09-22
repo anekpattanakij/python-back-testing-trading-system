@@ -303,21 +303,20 @@ if __name__ == "__main__":
                                 running_order_id = running_order_id + 1
                     target_robo.position_list = target_robo.position_list + close_position_list
             elif command_list[i]["type"] == CommandType.CLOSE_ALL:
-                if command_list[i].get('order_id') != None:
-                    close_position_list = []
-                    for position in target_robo.position_list:
-                        # for closing -> auto fill on opposite position
-                        if position.status('order_id') == OrderStatus.FILLED:
-                            close_side = OrderSide.SHORT
-                            if position["side"] == OrderSide.SHORT:
-                                close_side = OrderSide.LONG
-                            close_position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": target_robo.data5m[0][PriceDataDictColumn.CLOSE],
-                                                        "side": close_side, "status": OrderStatus.FILLED, "qty": position["qty"] - position["sold"], "sold": 0})
-                            running_order_id = running_order_id + 1
-                    target_robo.position_list = target_robo.position_list + close_position_list
+                close_position_list = []
+                for position in target_robo.position_list:
+                    # for closing -> auto fill on opposite position
+                    if position['status'] == OrderStatus.FILLED:
+                        close_side = OrderSide.SHORT
+                        if position["side"] == OrderSide.SHORT:
+                            close_side = OrderSide.LONG
+                        close_position_list.append({"order_id": running_order_id, "create_time": int(target_robo.data5m[0][PriceDataDictColumn.OPENTIME]) + 300000, "price": target_robo.data5m[0][PriceDataDictColumn.CLOSE],
+                                                    "side": close_side, "status": OrderStatus.FILLED, "qty": position["qty"] - position["sold"], "sold": 0})
+                        running_order_id = running_order_id + 1
+                target_robo.position_list = target_robo.position_list + close_position_list
             elif command_list[i]["type"] == CommandType.CANCEL_ALL:
                 for position in target_robo.position_list:
-                    if position.status('order_id') != OrderStatus.FILLED :
+                    if position['status'] != OrderStatus.FILLED :
                         target_robo.position_list.remove(position)
                     
 

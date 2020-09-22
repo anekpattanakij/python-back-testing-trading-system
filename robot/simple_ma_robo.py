@@ -24,11 +24,7 @@ class SimpleMaRobo(RoboTrade):
 
         if len(self.position_list) > 0 and self.data2h[0]["ma_12"] < self.data2h[0]["ma_26"]:
             return [{
-                "type": CommandType.ORDER,
-                "order": OrderType.LIMIT,
-                "side": OrderSide.SHORT,
-                "qty": self.position_list[0]["qty"],
-                "price": self.data2h[0][PriceDataDictColumn.CLOSE]
+                "type": CommandType.CLOSE_ALL
             }]
 
         return []
