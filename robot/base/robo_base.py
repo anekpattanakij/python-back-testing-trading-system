@@ -1,33 +1,33 @@
 
 class RoboTrade:
-  '''
-    pricelist will be in array of dictionary with 200 lenght
-    newest time slot will be store in index [0]
-    oldest time slot will be store in index [199]
-    {
-      "opentime" : 155552000, # in milli-second format
-      "open" : 110.0,
-      "close" : 100.0,
-      "high" : 120.0,
-      "low" : 90.0,
-      "highlow" : 30.0, # high - low
-      "highopen" : 20.0, # high - open
-      "closelow" : 10.0, # close - low
-      "closeopen" : -10.0, # close - open
-      "ohlc4" : 105.0
-    }
-  '''
+    '''
+      pricelist will be in array of dictionary with 200 lenght
+      newest time slot will be store in index [0]
+      oldest time slot will be store in index [199]
+      {
+        "opentime" : 155552000, # in milli-second format
+        "open" : 110.0,
+        "close" : 100.0,
+        "high" : 120.0,
+        "low" : 90.0,
+        "highlow" : 30.0, # high - low
+        "highopen" : 20.0, # high - open
+        "closelow" : 10.0, # close - low
+        "closeopen" : -10.0, # close - open
+        "ohlc4" : 105.0
+      }
+    '''
 
-  data20s = []
-  data5m = []
-  data15m = []
-  data30m = []
-  data1h = []
-  data2h = []
-  data4h = []
-  data1d = []
-  data1w = []
-  '''
+    data20s = []
+    data5m = []
+    data15m = []
+    data30m = []
+    data1h = []
+    data2h = []
+    data4h = []
+    data1d = []
+    data1w = []
+    '''
   position_list is using for trading and back testing strategy, it will be array of current position holding
    {
       "order_id" : 12345,
@@ -36,12 +36,12 @@ class RoboTrade:
       "side" : OrderSide,
       "status": OrderStatus,
       "qty" : 1.0, # float / mandatory for LIMIT / will be ignore for MARKET
-      "sold" : 0.0 # it can be partial match
+      "filled" : 0.0 # it can be partial match
     }
   '''
-  fund = 0.0
-  position_list = []
-  '''
+    fund = 0.0
+    position_list = []
+    '''
     each action should return array of command
     command can be 2 dict type
 
@@ -60,26 +60,40 @@ class RoboTrade:
       "price" : 9871.12 # float / mandatory for LIMIT / will be ignore for MARKET
     }
   '''
-  def __init__(self):
-    pass
 
-  # actionRealTime is working on production only, it will be triggerd every 20 sec
-  def actionRealTime(self):
-    pass
+    def __init__(self):
+        pass
 
-  def action5m(self):
-    pass
-  def action15m(self):
-    pass
-  def action30m(self):
-    pass
-  def action1h(self):
-    pass
-  def action2h(self):
-    pass
-  def action4h(self):
-    pass
-  def action1d(self):
-    pass
-  def action1w(self):
-    pass
+    # actionRealTime is working on production only, it will be triggerd every 20 sec
+    def actionRealTime(self):
+        pass
+
+    def action5m(self):
+        pass
+
+    def action15m(self):
+        pass
+
+    def action30m(self):
+        pass
+
+    def action1h(self):
+        pass
+
+    def action2h(self):
+        pass
+
+    def action4h(self):
+        pass
+
+    def action1d(self):
+        pass
+
+    def action1w(self):
+        pass
+    # return total value sum with filled position value
+    def total_port_value(self):
+        return self.fund + sum(position['price'] * position['filled'] for position in self.position_list)
+    # return total value sum with filled position value and deduct open position to limit trade side
+    def total_port_trade_value(self):
+        return self.fund + sum(position['price'] * position['filled'] for position in self.position_list) - sum(position['price'] * (position['qty'] - position['filled']) for position in self.position_list)
