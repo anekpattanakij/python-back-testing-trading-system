@@ -222,7 +222,6 @@ if __name__ == "__main__":
                                 "side":  target_robo.position_list[running_row]["side"]
                             }}]
                     print("trade : ", trade_history_list[-1])
-                    print(target_robo.position_list)
                     # remove position if fill all
                     if target_robo.position_list[running_row]["filled"] == target_robo.position_list[running_row]["qty"]:
                         target_robo.position_list = target_robo.position_list[
