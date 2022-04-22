@@ -1,16 +1,16 @@
 from enum import Enum
 
-class CommandType(Enum):
+class CommandType:
     ALERT = 'ALERT'
     ORDER = 'ORDER'
     CLOSE_ALL = 'CLOSE_ALL'
     CANCEL_ALL = 'CANCEL_ALL'
 
-class OrderSide(Enum):
+class OrderSide:
     LONG = 1
     SHORT = -1
 
-class OrderType(Enum):
+class OrderType:
     MARKET = "MARKET"
     LIMIT = "LIMIT"
     STOP_LIMIT = "STOP_LIMIT" 
@@ -21,12 +21,12 @@ class OrderType(Enum):
     CANCEL = 'CANCEL'
     CLOSE = 'CLOSE'
 
-class OrderStatus(Enum):
+class OrderStatus:
     OPEN = "OPEN"
     FILLED = "FILLED"
     CANCELLED = "CANCELLED"
 
-class PriceDataDictColumn(Enum):
+class PriceDataDictColumn:
     OPENTIME = "opentime"
     OPEN = "open"
     CLOSE = "close"

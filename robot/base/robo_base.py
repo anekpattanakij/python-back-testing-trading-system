@@ -17,8 +17,6 @@ class RoboTrade:
         "ohlc4" : 105.0
       }
     '''
-
-    data20s = []
     data5m = []
     data15m = []
     data30m = []
@@ -36,7 +34,8 @@ class RoboTrade:
       "side" : OrderSide,
       "status": OrderStatus,
       "qty" : 1.0, # float / mandatory for LIMIT / will be ignore for MARKET
-      "filled" : 0.0 # it can be partial match
+      "filled" : 0.7 # it can be partial match
+      "sold" : 0.2 # it can be partial sell
     }
   '''
     fund = 0.0
@@ -64,10 +63,6 @@ class RoboTrade:
     def __init__(self):
         pass
 
-    # actionRealTime is working on production only, it will be triggerd every 20 sec
-    def actionRealTime(self):
-        pass
-
     def action5m(self):
         pass
 
@@ -89,11 +84,16 @@ class RoboTrade:
     def action1d(self):
         pass
 
+ 
     def action1w(self):
-        pass
+      pass
+
     # return total value sum with filled position value
     def total_port_value(self):
-        return self.fund + sum(position['price'] * position['filled'] for position in self.position_list)
+        return self.fund + sum(position['price'] * (position['filled'] - position['sold']) for position in self.position_list)
     # return total value sum with filled position value and deduct open position to limit trade side
     def total_port_trade_value(self):
-        return self.fund + sum(position['price'] * position['filled'] for position in self.position_list) - sum(position['price'] * (position['qty'] - position['filled']) for position in self.position_list)
+        return self.fund + sum(position['price'] * (position['filled'] - position['sold']) for position in self.position_list) - sum(position['price'] * (position['qty'] - position['filled'] - position['sold']) for position in self.position_list)
+    # return total value sum with filled position value and deduct open position to limit trade side
+    def total_open_position_qty(self):
+        return self.fund + sum(position['qty'] - position['sold'] for position in self.position_list) 
