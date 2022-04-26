@@ -5,7 +5,8 @@ import math
 from timeit import default_timer as timer
 import pandas as pd
 import numpy as np
-from pathlib import Path
+from os import listdir
+from os.path import isfile, join, isdir
 from importlib import import_module
 from decimal import Decimal
 import decimal
@@ -16,7 +17,7 @@ from config import min_order_amount, min_order_usdt, order_spread_usdt
 
 # configuration
 TEST_DATA_2018_CURRENT = './test_data/btc_usdt_test_data.csv'
-TARGET_ROBOT = 'robo'
+TARGET_ROBOT = 'robo.py'
 LIMIT_HISTORY_PRICE = 200
 INITIAL_FUND = Decimal(10000.0)
 COMMISION_FEE = Decimal(0.1)
@@ -106,10 +107,13 @@ if __name__ == '__main__':
     ctx = decimal.getcontext()
     ctx.rounding = decimal.ROUND_DOWN
     ctx.prec = 8
-    for (_, name, _) in pkgutil.iter_modules([Path('./robot')]):
-        if not Path('./robot/' + name).is_dir():
-            if name == TARGET_ROBOT:
-                target_robo = import_module('robot.' + name, package=__name__)
+    file_list = [f for f in listdir('./robot') if isfile(join('./robot', f)) and f == TARGET_ROBOT]
+    target_robo = import_module('robot.' + file_list[0].replace('.py',''), package=__name__)
+    for i in dir(target_robo):
+        attribute = getattr(target_robo, i)
+        if inspect.isclass(attribute) and issubclass(attribute, RoboTrade) and attribute.__name__ != RoboTrade.__name__:
+            setattr(sys.modules[__name__], name, attribute)
+            target_robo_class = attribute
 
     for i in dir(target_robo):
         attribute = getattr(target_robo, i)
@@ -177,6 +181,7 @@ if __name__ == '__main__':
                 if (target_robo.position_list[pos_index]['price'] <= dict5m[0][PriceDataDictColumn.HIGH]) and (target_robo.position_list[pos_index]['price'] >= dict5m[0][PriceDataDictColumn.LOW]):
                     # deduct fund
                     target_robo.position_list[pos_index]['status'] = OrderStatus.FILLED
+                    target_robo.position_list[pos_index]['filled'] = target_robo.position_list[pos_index]['qty']
         # settlement long short
         running_row = 0
         process_position_list = []
@@ -191,10 +196,10 @@ if __name__ == '__main__':
                     running_row = running_row + 1
                 else:
                     # different side from waiting settlement list, so settelment
-                    value_settle = min(process_position_list[0]['qty']-process_position_list[0]['filled'],
-                                       target_robo.position_list[running_row]['qty'] - target_robo.position_list[running_row]['filled'])
-                    process_position_list[0]['filled'] = process_position_list[0]['filled'] + value_settle
-                    target_robo.position_list[running_row]['filled'] = target_robo.position_list[running_row]['filled'] + value_settle
+                    value_settle = min(process_position_list[0]['filled']-process_position_list[0]['sold'],
+                                       target_robo.position_list[running_row]['filled'] - target_robo.position_list[running_row]['sold'])
+                    process_position_list[0]['sold'] = process_position_list[0]['sold'] + value_settle
+                    target_robo.position_list[running_row]['sold'] = target_robo.position_list[running_row]['sold'] + value_settle
 
                     fund_before = target_robo.fund
                     # calculate settlement
@@ -223,10 +228,10 @@ if __name__ == '__main__':
                             }}]
                     print('trade : ', trade_history_list[-1])
                     # remove position if fill all
-                    if target_robo.position_list[running_row]['filled'] == target_robo.position_list[running_row]['qty']:
+                    if target_robo.position_list[running_row]['sold'] == target_robo.position_list[running_row]['qty']:
                         target_robo.position_list = target_robo.position_list[
                             :running_row] + target_robo.position_list[running_row+1:]
-                    if process_position_list[0]['filled'] == process_position_list[0]['qty']:
+                    if process_position_list[0]['sold'] == process_position_list[0]['qty']:
                         # remove original position in trading list
                         for running_index in range(running_row):
                             if target_robo.position_list[running_index]['order_id'] == process_position_list[0]['order_id'] and target_robo.position_list[running_index]['create_time'] == process_position_list[0]['create_time'] and target_robo.position_list[running_index]['qty'] == process_position_list[0]['qty']:

@@ -1,9 +1,13 @@
+from decimal import Decimal
+
 
 class RoboTrade:
     '''
       pricelist will be in array of dictionary with 200 lenght
       newest time slot will be store in index [0]
       oldest time slot will be store in index [199]
+      # note : we use list of dictionary instead of numpy dataframe because
+      we need precision data to avoid floating point comparison issue.
       {
         "opentime" : 155552000, # in milli-second format
         "open" : 110.0,
@@ -36,9 +40,10 @@ class RoboTrade:
       "qty" : 1.0, # float / mandatory for LIMIT / will be ignore for MARKET
       "filled" : 0.7 # it can be partial match
       "sold" : 0.2 # it can be partial sell
+      "cancelled" : 0.1 # it can be partial cancel
     }
   '''
-    fund = 0.0
+    fund = Decimal(0.0)
     position_list = []
     '''
     each action should return array of command
@@ -84,16 +89,17 @@ class RoboTrade:
     def action1d(self):
         pass
 
- 
     def action1w(self):
-      pass
+        pass
 
     # return total value sum with filled position value
-    def total_port_value(self):
+    def total_port_value(self) -> Decimal:
         return self.fund + sum(position['price'] * (position['filled'] - position['sold']) for position in self.position_list)
     # return total value sum with filled position value and deduct open position to limit trade side
-    def total_port_trade_value(self):
+
+    def total_port_trade_value(self) -> Decimal:
         return self.fund + sum(position['price'] * (position['filled'] - position['sold']) for position in self.position_list) - sum(position['price'] * (position['qty'] - position['filled'] - position['sold']) for position in self.position_list)
     # return total value sum with filled position value and deduct open position to limit trade side
-    def total_open_position_qty(self):
-        return self.fund + sum(position['qty'] - position['sold'] for position in self.position_list) 
+
+    def total_open_position_qty(self) -> Decimal:
+        return self.fund + sum(position['qty'] - position['sold'] for position in self.position_list)

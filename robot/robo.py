@@ -5,12 +5,9 @@ import math
 
 
 class Ema12Cross50Robo(RoboTrade):
-
     def action1d(self):
-        self.data1d = calculate_ema(
-            self.data1d, PriceDataDictColumn.CLOSE, "ema_12", 12)
-        self.data1d = calculate_ema(
-            self.data1d, PriceDataDictColumn.CLOSE, "ema_26", 26)
+        self.data1d = calculate_ema(self.data1d, PriceDataDictColumn.CLOSE, [
+                                    {'ema_level': 12, 'ema_column': 'ema_12'}, {'ema_level': 26, 'ema_column': 'ema_26'}])
         if math.isnan(self.data1d[0]["ema_12"]) or math.isnan(self.data1d[0]["ema_26"]):
             return []
 
