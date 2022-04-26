@@ -3,6 +3,16 @@ import pandas as pd
 
 #ma_column, ma_level
 def calculate_ma(datadict_array, value_column, ma_request):
+    '''
+    Args:
+        datadict_array (list[dict]): Data list in the robo.
+        value_column (str): Base value for calculate ema.
+        ma_request (list[dict]): list of dictionary type, dict should be in format {'ma_level' : int,'ma_column' : str}.
+        This will calculate ma level and put it in the ema_column as new column in dict
+    Returns:
+        list[dict]: The list of data with indicator value in designated columns.
+
+    '''
     df = pd.DataFrame(data=datadict_array)
     df = df.iloc[::-1]
     result_ma = {}
@@ -16,6 +26,16 @@ def calculate_ma(datadict_array, value_column, ma_request):
 
 
 def calculate_ema(datadict_array, value_column: str, ema_request) :
+    '''
+    Args:
+        datadict_array (list[dict]): Data list in the robo.
+        value_column (str): Base value for calculate ema.
+        ema_request (list[dict]): list of dictionary type, dict should be in format {'ema_level' : int,'ema_column' : str}.
+        This will calculate ema level and put it in the ema_column as new column in dict
+    Returns:
+        list[dict]: The list of data with indicator value in designated columns.
+
+    '''
     df = pd.DataFrame(data=datadict_array)
     df = df.iloc[::-1]
     result_ema = {}
